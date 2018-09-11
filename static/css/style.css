@@ -1,0 +1,11 @@
+.square{
+    width: 300px;
+    height: 300px;
+    border: dotted;
+    border-color: black;
+    border-width: 1px;
+    background-color: burlywood;
+}
+.sync{
+    width: 300px;
+}

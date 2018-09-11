@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{ title }}</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}" sizes="16x16">
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'css/style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'css/bootstrap.min.css') }}">
+    <script src="{{ url_for('static', filename = 'js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'js/socket.io.slim.js') }}"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            namespace = '/flask';
+
+            var socketio = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+/* Открытие клапана */
+
+            $("button#open_valve").on('click', function () {
+                socketio.emit('valve_opening', 'open_valve');
+                return false;
+            });
+
+            socketio.on('filling_bottom_capacity', function (msg) {
+                $("div#bottom_capacity_level").css("width", msg.bottom_capacity + "%");
+                $("span#bottom_capacity_level").text(msg.bottom_capacity + "%");
+
+                $("div#valve_status").text("Состояние клапана: " + msg.valve);
+
+                $("div#upper_capacity_level").css("width", msg.upper_capacity + "%");
+                $("span#upper_capacity_level").text(msg.upper_capacity + "%");
+            });
+
+/* Включение насоса */
+
+            $("button#on_pump").on('click', function () {
+                socketio.emit('starting_pump', 'on_pump');
+                return false;
+            });
+
+            socketio.on('filling_upper_capacity', function (msg) {
+                $("div#upper_capacity_level").css("width", msg.upper_capacity + "%");
+                $("span#upper_capacity_level").text(msg.upper_capacity + "%");
+
+                $("div#pump_status").text("Состояние насоса: " + msg.pump);
+
+                $("div#bottom_capacity_level").css("width", msg.bottom_capacity + "%");
+                $("span#bottom_capacity_level").text(msg.bottom_capacity + "%");
+            });
+
+        });
+    </script>
+
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-8 mx-auto">
+
+            <img src="https://i.imgur.com/V3wZxSE.png" class="img-fluid">
+
+            <div class="alert alert-info" role="alert">
+
+                <form class="form-inline">
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                        <button class="btn btn-secondary" type="button" id="open_valve">Открыть клапан</button>
+                        <button class="btn btn-secondary" type="submit" formaction="/close_valve" formmethod="post">Закрыть клапан</button>
+                    </div>
+                    <div class="mx-sm-3" id="valve_status">Состояние клапана: {{ stand_data['pump'] }}</div>
+                </form>
+
+                <p></p>
+                <p>Уровень в нижней ёмкости:</p>
+                <div class="progress">
+                    <div id="bottom_capacity_level" class="progress-bar bg-info" role="progressbar" style="width: {{ stand_data['bottom_capacity'] }}%">
+                        <span id="bottom_capacity_level" class="progress-bar-label">{{ stand_data['bottom_capacity'] }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <p></p>
+
+            <div class="alert alert-info" role="alert">
+                <form class="form-inline">
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                        <button class="btn btn-secondary" type="button" id="on_pump">Запустить насос</button>
+                        <button class="btn btn-secondary" type="submit" formaction="/off_pump" formmethod="post">Отключить насос</button>
+                    </div>
+                    <div class="mx-sm-3" id="pump_status">Состояние насоса: {{ stand_data['pump'] }}</div>
+                </form>
+                <p></p>
+                <p>Уровень в верхней ёмкости:</p>
+                <div class="progress">
+                    <div id="upper_capacity_level" class="progress-bar bg-info" role="progressbar" style="width: {{ stand_data['upper_capacity'] }}%">
+                        <span id="upper_capacity_level" class="progress-bar-label">{{ stand_data['upper_capacity'] }}%</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
